@@ -7,21 +7,18 @@ import math
 lock = threading.Lock()
 
 def draw_pixel(stdscr, x, y, symbol, color_pair):
-    """Vẽ một điểm ảnh tại vị trí (x, y) nếu nằm trong màn hình."""
     height, width = stdscr.getmaxyx()
     if 0 <= x < width and 0 <= y < height:
         try:
             stdscr.addstr(y, x, symbol, color_pair)
         except curses.error:
-            pass  # Bỏ qua lỗi nếu không thể vẽ
+            pass
 
 def draw_firework(stdscr, x, y):
-    """Vẽ pháo hoa nổ tại vị trí (x, y) lâu hơn."""
     colors = [curses.COLOR_RED, curses.COLOR_GREEN, curses.COLOR_YELLOW, 
               curses.COLOR_BLUE, curses.COLOR_MAGENTA, curses.COLOR_CYAN]
     symbols = ['*', '+', 'o', 'x', '•']
-
-    max_radius = random.randint(6, 12)  # Tăng bán kính tối đa
+    max_radius = random.randint(6, 12)  
     shape = random.choice(['circle', 'star'])  
 
     for i in range(max_radius):
@@ -34,31 +31,29 @@ def draw_firework(stdscr, x, y):
                     elif shape == 'star' and abs(dx) + abs(dy) <= i:
                         draw_pixel(stdscr, x+dx, y+dy, random.choice(symbols), curses.color_pair(1))
             stdscr.refresh()
-        time.sleep(0.04)  # Giảm tốc độ hiển thị để lâu hơn
+        time.sleep(0.04)  
 
-    time.sleep(0.5)  # Giữ nguyên pháo hoa một lúc trước khi mờ dần
+    time.sleep(0.5)
 
 def fade_firework(stdscr, x, y):
-    """Tạo hiệu ứng mờ dần kéo dài hơn."""
-    fade_steps = random.randint(6, 10)  # Tăng số bước mờ dần
+    fade_steps = random.randint(6, 10)
     for step in range(fade_steps):
         with lock:
-            for dx in range(-12, 13):  # Tăng phạm vi làm mờ
+            for dx in range(-12, 13):
                 for dy in range(-12, 13):
-                    if random.random() < 0.5:  # Giảm tốc độ mờ dần
+                    if random.random() < 0.5:
                         draw_pixel(stdscr, x+dx, y+dy, ' ', curses.color_pair(0))
             stdscr.refresh()
-        time.sleep(0.05)  # Làm mờ chậm hơn
+        time.sleep(0.05)
 
 def launch_firework(stdscr, start_x, start_y, target_y):
-    """Phóng pháo hoa từ (start_x, start_y) đến (start_x, target_y)."""
     curve = random.choice(['straight', 'left', 'right', 'sin'])
     x = start_x
     for y in range(start_y, target_y, -1):
         with lock:
             draw_pixel(stdscr, x, y, '|', curses.color_pair(0))
             stdscr.refresh()
-        time.sleep(0.02)  # Chậm hơn một chút
+        time.sleep(0.02)
         with lock:
             draw_pixel(stdscr, x, y, ' ', curses.color_pair(0))
         
@@ -70,10 +65,8 @@ def launch_firework(stdscr, start_x, start_y, target_y):
             x += int(math.sin(y/2) * 1.5)
 
 def firework_thread(stdscr):
-    """Luồng phụ trách một pháo hoa."""
     try:
         height, width = stdscr.getmaxyx()
-        
         start_x = random.randint(1, width-2)
         start_y = height - 1
         target_y = random.randint(height//4, 3*height//4)
@@ -81,15 +74,12 @@ def firework_thread(stdscr):
         explosion_y = target_y + random.randint(-2, 2)
         
         launch_firework(stdscr, start_x, start_y, target_y)
-        
         draw_firework(stdscr, explosion_x, explosion_y)
-        
         fade_firework(stdscr, explosion_x, explosion_y)
     except:
         pass
 
 def main(stdscr):
-    """Hàm chính."""
     curses.curs_set(0)
     if curses.has_colors():
         curses.start_color()
@@ -121,7 +111,7 @@ def main(stdscr):
                 t.start()
                 active_threads.append(t)
         
-        sleep_time = random.uniform(0.8, 1.5)  # Tăng thời gian nghỉ giữa các lần bắn
+        sleep_time = random.uniform(0.8, 1.5)  
         time.sleep(sleep_time)
         
         if stdscr.getch() == ord('q'):
